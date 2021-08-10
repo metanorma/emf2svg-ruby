@@ -6,6 +6,15 @@
 /pkg/
 /spec/reports/
 /tmp/
+/ports/
+/Gemfile.lock
+*.installed
+*.dll
+*.dylib
+*.so
 
 # rspec failure tracking
 .rspec_status
+
+# remote file cache
+.rubocop-*

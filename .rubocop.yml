@@ -1,13 +1,5 @@
+inherit_from:
+  - 'https://raw.githubusercontent.com/riboseinc/oss-guides/master/ci/rubocop.yml'
+
 AllCops:
-  TargetRubyVersion: 2.4
-
-Style/StringLiterals:
-  Enabled: true
-  EnforcedStyle: double_quotes
-
-Style/StringLiteralsInInterpolation:
-  Enabled: true
-  EnforcedStyle: double_quotes
-
-Layout/LineLength:
-  Max: 120
+  TargetRubyVersion: 2.5

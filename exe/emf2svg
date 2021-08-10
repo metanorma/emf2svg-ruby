@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "emf2svg"
+
+svg = Emf2svg.from_file(ARGV[0])
+File.write(ARGV[1], svg, mode: "wb")

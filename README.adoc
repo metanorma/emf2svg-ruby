@@ -22,12 +22,80 @@ Or add it to your `Gemfile`:
 gem 'emf2svg'
 ----
 
+=== Dependencies
+
+* libiconv
+* libpng
+* libfontconfig
+* libfreetype
+
+==== Windows
+
+On Windows all necessary libraries are precompiled but you'll need Visual
+Studio 2019 with C++ Build Tools, which can be downloaded
+https://visualstudio.microsoft.com/downloads/[here], or installed with
+Chocolatey:
+
+[source,sh]
+----
+choco install visualstudio2019buildtools -y --no-progress --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362"
+----
+
+==== macOS
+
+[source,sh]
+----
+brew install cmake
+----
+
+==== Linux
+
+===== Debian
+
+[source,sh]
+----
+# compiler
+apt-get install gcc g++
+# or
+apt-get install clang
+
+# build deps
+apt-get install cmake pkg-config
+
+# library deps with their headers
+apt-get install libpng-dev libc6-dev libfontconfig1-dev libfreetype6-dev zlib1g-dev
+----
+
+===== Fedora
+
+[source,sh]
+----
+yum install cmake libpng-devel freetype-devel fontconfig-devel gcc-c++ gcc
+----
+
 == Usage
 
 This gem embeds libemf2svg, allowing your Ruby code to utilize EMF to SVG
 conversion facilities.
 
-TODO.
+[source,ruby]
+----
+require "emf2svg"
+
+data = Emf2svg.from_file("example.emf")
+File.write("output.svg", data, mode: "wb")
+----
+
+It also can use content of emf as an input:
+
+[source,ruby]
+----
+require "emf2svg"
+
+emf_content = File.read("example.emf", mode: "rb")
+svg_data = Emf2svg.from_binary_string(emf_content)
+File.write("output.svg", svg_data, mode: "wb")
+----
 
 == Development
 
@@ -40,6 +108,25 @@ release a new version, update the version number in `version.rb`, and then run
 `bundle exec rake release`, which will create a git tag for the version, push
 git commits and the created tag, and push the `.gem` file to
 https://rubygems.org[rubygems.org].
+
+=== Releasing
+
+Releasing is done automatically with GitHub Actions. Just bump and tag with
+`gem-release`.
+
+For a patch release (0.0.x) use:
+
+[source,sh]
+----
+gem bump --version patch --tag --push
+----
+
+For a minor release (0.x.0) use:
+
+[source,sh]
+----
+gem bump --version minor --tag --push
+----
 
 == Contributing
 
