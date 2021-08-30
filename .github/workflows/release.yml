@@ -6,31 +6,69 @@ on:
       - 'v*'
 
 jobs:
-  release:
-    runs-on: ubuntu-18.04
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            platform: any
+          - os: ubuntu-18.04
+            platform: x86_64-linux
+          - os: windows-latest
+            platform: x64-mingw32
+          - os: macos-latest
+            platform: x86_64-darwin
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.6'
+          bundler-cache: true
 
-      - run: bundle config set path 'vendor/bundle'
+      - run: bundle exec rake gem:native:${{ matrix.platform }}
 
-      - run: bundle install --jobs 4 --retry 3
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pkg
+          path: pkg/*.gem
 
-      - run: bundle exec rake
+      - name: Install gem
+        run: gem install --no-document pkg/emf2svg-*.gem
+
+      - name: Test conversion
+        run: |
+          ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+          bundler-cache: true
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: pkg
+          path: pkg
 
       - name: Publish to rubygems.org
         env:
           RUBYGEMS_API_KEY: ${{secrets.METANORMA_CI_RUBYGEMS_API_KEY}}
         run: |
-          gem install gem-release
+          mkdir -p ~/.gem
           touch ~/.gem/credentials
           cat > ~/.gem/credentials << EOF
           ---
           :rubygems_api_key: ${RUBYGEMS_API_KEY}
           EOF
           chmod 0600 ~/.gem/credentials
-          git status
-          gem release
+          gem signin
+          ls -l pkg/
+          for gem in pkg/*.gem; do gem push -V $gem; done
