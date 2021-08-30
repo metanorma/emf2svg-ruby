@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.email         = ["open.source@ribose.com"]
 
   spec.summary       = "Ruby interface to libemf2svg."
-  # spec.description   = "TODO: Write a longer description or delete this line."
   spec.homepage      = "https://github.com/metanorma/emf2svg-ruby"
+  spec.license       = "BSD-2-Clause"
   spec.required_ruby_version = ">= 2.5.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
@@ -30,8 +30,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "mini_portile2", "~> 2.6"
 
   spec.add_development_dependency "rubocop", "1.5.2"
-  spec.add_development_dependency "rubocop-performance"
-  spec.add_development_dependency "rubocop-rails"
+  spec.add_development_dependency "rubocop-performance", "~> 1.0"
+  spec.add_development_dependency "rubocop-rails", "~> 2.0"
 
   spec.extensions = ["ext/extconf.rb"]
 end

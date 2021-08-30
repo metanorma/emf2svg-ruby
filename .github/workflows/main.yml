@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
     steps:
     - uses: actions/checkout@v2
 
@@ -22,47 +22,82 @@ jobs:
 
     - run: bundle exec rake
 
-  build-gem:
-    runs-on: ubuntu-18.04
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            platform: any
+          - os: ubuntu-18.04
+            platform: x86_64-linux
+          - os: windows-latest
+            platform: x64-mingw32
+          - os: macos-latest
+            platform: x86_64-darwin
     steps:
       - uses: actions/checkout@v2
 
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.6'
+          bundler-cache: true
 
-      - run: bundle config set path 'vendor/bundle'
-
-      - run: bundle install --jobs 4 --retry 3
-
-      - run: bundle exec rake build
+      - run: bundle exec rake gem:native:${{ matrix.platform }}
 
       - uses: actions/upload-artifact@v2
         with:
           name: pkg
           path: pkg/*.gem
 
-  test-gem:
-    needs: build-gem
+      - name: Install gem
+        run: gem install --no-document pkg/emf2svg-*.gem
+
+      - name: Test conversion
+        run: |
+          ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+  test-build:
+    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        include:
+          - os: ubuntu-latest
+            platform: any
+          - os: windows-latest
+            platform: any
+          - os: macos-latest
+            platform: any
+          - os: ubuntu-18.04
+            platform: x86_64-linux
+          - os: ubuntu-latest
+            platform: x86_64-linux
+          - os: windows-latest
+            platform: x64-mingw32
+          - os: macos-latest
+            platform: x86_64-darwin
     steps:
       - uses: actions/checkout@v2
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
 
       - uses: actions/download-artifact@v2
         with:
           name: pkg
           path: pkg
 
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '2.6'
+      - name: Install native gem
+        if: matrix.platform == 'any'
+        run: gem install --no-document pkg/emf2svg-$(ruby -I lib -r emf2svg/version -e "puts Emf2svg::VERSION").gem
 
-      - name: Install gem
-        run: gem install --no-document pkg/emf2svg-*.gem
+      - name: Install binary gem
+        if: matrix.platform != 'any'
+        run: gem install --no-document pkg/emf2svg-*-${{ matrix.platform }}.gem
 
       - name: Test conversion
         run: |
