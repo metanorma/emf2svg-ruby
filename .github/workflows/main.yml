@@ -32,7 +32,7 @@ jobs:
 #            platform: any
 #          - os: ubuntu-18.04
 #            platform: x86_64-linux
-          - os: windows-latest
+          - os: windows-2019
             platform: x64-mingw32
 #          - os: macos-latest
 #            platform: x86_64-darwin
@@ -43,8 +43,6 @@ jobs:
         with:
           ruby-version: '2.6'
           bundler-cache: true
-
-      - run: vcpkg update
 
       - run: bundle exec rake gem:native:${{ matrix.platform }}
 
