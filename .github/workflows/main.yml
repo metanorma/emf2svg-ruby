@@ -28,14 +28,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-18.04
-            platform: any
-          - os: ubuntu-18.04
-            platform: x86_64-linux
+#          - os: ubuntu-18.04
+#            platform: any
+#          - os: ubuntu-18.04
+#            platform: x86_64-linux
           - os: windows-latest
             platform: x64-mingw32
-          - os: macos-latest
-            platform: x86_64-darwin
+#          - os: macos-latest
+#            platform: x86_64-darwin
     steps:
       - uses: actions/checkout@v2
 
@@ -43,6 +43,8 @@ jobs:
         with:
           ruby-version: '2.6'
           bundler-cache: true
+
+      - run: vcpkg update
 
       - run: bundle exec rake gem:native:${{ matrix.platform }}
 
