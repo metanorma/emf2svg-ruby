@@ -39,7 +39,6 @@ module Emf2svg
 
       if MiniPortile.windows?
         opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
-        opts << "-GVisual Studio 16 2019"
       end
 
       opts
