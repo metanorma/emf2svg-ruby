@@ -33,6 +33,7 @@ end
 platforms = [
   "x64-mingw32",
   "x86_64-linux",
+  "aarch64-linux",
   "x86_64-darwin",
 ]
 
