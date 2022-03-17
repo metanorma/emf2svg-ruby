@@ -11,15 +11,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        ruby: ['2.7', '3.1']
         include:
           - os: ubuntu-18.04
             platform: any
           - os: ubuntu-18.04
             platform: x86_64-linux
-          - os: ubuntu-18.04
-            platform: aarch64-linux
+#          - os: ubuntu-18.04
+#            platform: aarch64-linux
           - os: windows-latest
             platform: x64-mingw32
+          - os: windows-latest
+            platform: x64-ucrt
           - os: macos-latest
             platform: x86_64-darwin
     steps:
@@ -27,7 +30,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.6'
+          ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
       - run: bundle exec rake gem:native:${{ matrix.platform }}
@@ -52,7 +55,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.6'
+          ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
       - uses: actions/download-artifact@v2
