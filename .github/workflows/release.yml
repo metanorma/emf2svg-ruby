@@ -18,6 +18,8 @@ jobs:
             platform: x86_64-linux
           - os: windows-latest
             platform: x64-mingw32
+          - os: windows-latest
+            platform: x64-ucrt
           - os: macos-latest
             platform: x86_64-darwin
     steps:
