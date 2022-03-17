@@ -28,6 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        ruby: ['2.7', '3.1']
         include:
           - os: ubuntu-18.04
             platform: any
@@ -44,7 +45,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.7'
+          ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
       - run: bundle exec rake gem:native:${{ matrix.platform }}
@@ -67,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-	      ruby: ['2.7', '3.1']
+        ruby: ['2.7', '3.1']
         include:
           - os: ubuntu-latest
             platform: any
