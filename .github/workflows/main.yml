@@ -2,8 +2,9 @@ name: main
 
 on:
   push:
-    branches: [ main, master ]
+#    branches: [ main, master ]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -17,7 +18,7 @@ jobs:
 
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.6.6
+        ruby-version: 2.7
         bundler-cache: true
 
     - run: bundle exec rake
@@ -41,7 +42,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.6'
+          ruby-version: '2.7'
           bundler-cache: true
 
       - run: bundle exec rake gem:native:${{ matrix.platform }}
@@ -84,7 +85,7 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.6'
+          ruby-version: '2.7'
 
       - uses: actions/download-artifact@v2
         with:
