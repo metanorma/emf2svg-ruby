@@ -19,7 +19,7 @@ jobs:
           - os: windows-latest
             platform: x64-mingw32
           - os: windows-latest
-            platform: x64-ucrt
+            platform: x64-mingw-ucrt
           - os: macos-latest
             platform: x86_64-darwin
     steps:
@@ -38,7 +38,7 @@ jobs:
           path: pkg/*.gem
 
       - name: Install gem
-        run: gem install --no-document pkg/emf2svg-*.gem
+        run: gem install -b pkg/emf2svg-*.gem
 
       - name: Test conversion
         run: |
