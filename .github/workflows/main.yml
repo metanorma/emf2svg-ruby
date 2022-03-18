@@ -117,6 +117,12 @@ jobs:
         if: matrix.platform == 'any'
         run: gem install -b pkg/emf2svg-$(ruby -I lib -r emf2svg/version -e "puts Emf2svg::VERSION").gem
 
+      - name: what-is-up 
+        if: matrix.os == 'windows-latest'
+        run: |
+          dir pkg/*.*
+          dir pkg/emf2svg-*-${{ matrix.platform }}.gem
+
       - name: Install binary gem
         if: matrix.platform != 'any'
         run: gem install -b pkg/emf2svg-*-${{ matrix.platform }}.gem
