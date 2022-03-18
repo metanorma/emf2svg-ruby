@@ -14,20 +14,25 @@ jobs:
         include:
           - os: ubuntu-18.04
             platform: any
+            ruby-version: '2.7'
           - os: ubuntu-18.04
             platform: x86_64-linux
+            ruby-version: '2.7'
           - os: windows-latest
             platform: x64-mingw32
+            ruby-version: '2.7'
           - os: windows-latest
             platform: x64-mingw-ucrt
+            ruby-version: '3.1'
           - os: macos-latest
             platform: x86_64-darwin
+            ruby-version: '2.7'
     steps:
       - uses: actions/checkout@v2
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '2.7'
+          ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
 
       - run: bundle exec rake gem:native:${{ matrix.platform }}
