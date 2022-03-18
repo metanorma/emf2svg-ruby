@@ -38,7 +38,7 @@ jobs:
           path: pkg/*.gem
 
       - name: Install gem
-        run: gem install --no-document pkg/emf2svg-*.gem
+        run: gem install -b pkg/emf2svg-*.gem
 
       - name: Test conversion
         run: |
