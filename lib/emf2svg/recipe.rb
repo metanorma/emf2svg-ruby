@@ -11,7 +11,7 @@ module Emf2svg
 
       @files << {
         url: "https://github.com/metanorma/libemf2svg/releases/download/1.3.1/libemf2svg.tar.gz",
-        sha256: "732C60C54D0692A8634221E6FFB0733AD0BB1D9A246A03BA2433C535441EB73E", # rubocop:disable Layout/LineLength
+        sha256: "732c60c54d0692a8634221e6ffb0733ad0bb1d9a246a03ba2433c535441eb73e", # rubocop:disable Layout/LineLength
       }
 
       @target = ROOT.join(@target).to_s

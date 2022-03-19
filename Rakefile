@@ -32,6 +32,7 @@ end
 
 platforms = [
   "x64-mingw32",
+  "x64-mingw-ucrt",
   "x86_64-linux",
 #  "aarch64-linux",
   "x86_64-darwin",
