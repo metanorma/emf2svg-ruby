@@ -11,7 +11,7 @@ RuboCop::RakeTask.new
 
 task default: %i[spec rubocop]
 
-task :compile do 
+task :compile do
   require_relative "ext/extconf"
 end
 task spec: :compile

@@ -9,7 +9,7 @@ module Emf2svg
 
     def initialize
       super("libemf2svg", "1.4.0")
-      
+
       @files << {
         url: "https://github.com/metanorma/libemf2svg/releases/download/v1.4.0/libemf2svg.tar.gz",
         sha256: "e05081986a0ec6c5bd494068825c7b55dd21fa1814942a61293b225af2d957d2", # rubocop:disable Layout/LineLength
@@ -29,8 +29,11 @@ module Emf2svg
       FileUtils.touch(checkpoint)
     end
 
+    # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/CyclomaticComplexity
     def host_platform
-      @host_platform ||= case @host
+      @host_platform ||=
+        case @host
         when /\Ax86_64.*mingw32/
           "x64-mingw32"
         when /\Ai[3-6]86.*mingw32/
@@ -49,13 +52,15 @@ module Emf2svg
           raise "CrossRuby.platform: unsupported host: #{@host}"
         end
     end
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
 
     def target_platform
-      @target_platform = ENV['target_platform']
+      @target_platform = ENV["target_platform"] || host_platform
     end
 
     def cross_compiling?
-       not host_platform.eql? target_platform
+      not host_platform.eql? target_platform
     end
 
     def checkpoint
@@ -72,9 +77,9 @@ module Emf2svg
       end
 
       if cross_compiling? && (not MiniPortile.windows?)
-        message("Cross-compiling on " + host_platform + " for " + target_platform + "\n")
+        message("Cross-compiling on #{host_platform} for #{target_platform}\n")
         opts << "-DVCPKG_TARGET_TRIPLET=#{target_platform}"
-      end 
+      end
 
       opts
     end
