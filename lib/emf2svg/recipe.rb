@@ -1,3 +1,4 @@
+require "rbconfig"
 require "mini_portile2"
 require "pathname"
 require "tmpdir"
@@ -7,11 +8,11 @@ module Emf2svg
     ROOT = Pathname.new(File.expand_path("../..", __dir__))
 
     def initialize
-      super("libemf2svg", "1.3.1")
-
+      super("libemf2svg", "1.4.0")
+      
       @files << {
-        url: "https://github.com/metanorma/libemf2svg/releases/download/1.3.1/libemf2svg.tar.gz",
-        sha256: "732c60c54d0692a8634221e6ffb0733ad0bb1d9a246a03ba2433c535441eb73e", # rubocop:disable Layout/LineLength
+        url: "https://github.com/metanorma/libemf2svg/releases/download/v1.4.0/libemf2svg.tar.gz",
+        sha256: "e05081986a0ec6c5bd494068825c7b55dd21fa1814942a61293b225af2d957d2", # rubocop:disable Layout/LineLength
       }
 
       @target = ROOT.join(@target).to_s
@@ -28,8 +29,37 @@ module Emf2svg
       FileUtils.touch(checkpoint)
     end
 
+    def host_platform
+      @host_platform ||= case @host
+        when /\Ax86_64.*mingw32/
+          "x64-mingw32"
+        when /\Ai[3-6]86.*mingw32/
+          "x86-mingw32"
+        when /\Ax86_64.*linux/
+          "x86_64-linux"
+        when /\Aarm64.*linux/
+          "xarm64-linux"
+        when /\Ai[3-6]86.*linux/
+          "x86-linux"
+        when /\Ax86_64-darwin/
+          "x86_64-darwin"
+        when /\Aarm64-darwin/
+          "arm64-darwin"
+        else
+          raise "CrossRuby.platform: unsupported host: #{@host}"
+        end
+    end
+
+    def target_platform
+      @target_platform = ENV['target_platform']
+    end
+
+    def cross_compiling?
+       not host_platform.eql? target_platform
+    end
+
     def checkpoint
-      File.join(@target, "#{name}-#{version}-#{host}.installed")
+      File.join(@target, "#{name}-#{version}-#{target_platform}.installed")
     end
 
     def configure_defaults
@@ -37,9 +67,14 @@ module Emf2svg
 
       opts << "-DCMAKE_BUILD_TYPE=Release"
 
-      if MiniPortile.windows?
+      if MiniPortile.windows? || cross_compiling?
         opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
       end
+
+      if cross_compiling? && (not MiniPortile.windows?)
+        message("Cross-compiling on " + host_platform + " for " + target_platform + "\n")
+        opts << "-DVCPKG_TARGET_TRIPLET=#{target_platform}"
+      end 
 
       opts
     end

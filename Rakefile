@@ -11,7 +11,7 @@ RuboCop::RakeTask.new
 
 task default: %i[spec rubocop]
 
-task :compile do
+task :compile do 
   require_relative "ext/extconf"
 end
 task spec: :compile
@@ -34,14 +34,14 @@ platforms = [
   "x64-mingw32",
   "x64-mingw-ucrt",
   "x86_64-linux",
-#  "aarch64-linux",
+  "arm64-linux",
   "x86_64-darwin",
 ]
 
 platforms.each do |platform|
   desc "Build pre-compiled gem for the #{platform} platform"
   task "gem:native:#{platform}" do
-    sh "rake compile platform:#{platform} gem"
+    sh "rake compile platform:#{platform} gem target_platform=#{platform}"
   end
 
   desc "Define the gem task to build on the #{platform} platform (binary gem)"
