@@ -128,3 +128,31 @@ jobs:
       - name: Test conversion
         run: |
           ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+  cross:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 3
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            platform: arm64-linux
+            ruby-version: '2.7'
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - run: bundle exec rake gem:native:${{ matrix.platform }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pkg
+          path: pkg/*.gem
+
+      - name: Install gem
+        run: gem install -b pkg/emf2svg-*.gem
