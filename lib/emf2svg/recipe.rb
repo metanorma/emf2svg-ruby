@@ -44,9 +44,9 @@ module Emf2svg
           "xarm64-linux"
         when /\Ai[3-6]86.*linux/
           "x86-linux"
-        when /\Ax86_64-darwin/
+        when /\Ax86_64.*darwin/
           "x86_64-darwin"
-        when /\Aarm64-darwin/
+        when /\Aarm64.*darwin/
           "arm64-darwin"
         else
           raise "CrossRuby.platform: unsupported host: #{@host}"
