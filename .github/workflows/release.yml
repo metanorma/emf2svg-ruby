@@ -112,6 +112,4 @@ jobs:
           chmod 0600 ~/.gem/credentials
           gem signin
           ls -l pkg/
-          for gem in pkg/*.gem; do echo "*** Will be pushing $gem ***"; done
-
-#          for gem in pkg/*.gem; do gem push -V $gem; done
+          for gem in pkg/*.gem; do gem push -V $gem; done
