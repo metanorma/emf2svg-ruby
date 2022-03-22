@@ -41,7 +41,7 @@ module Emf2svg
         when /\Ax86_64.*linux/
           "x86_64-linux"
         when /\Aarm64.*linux/
-          "xarm64-linux"
+          "arm64-linux"
         when /\Ai[3-6]86.*linux/
           "x86-linux"
         when /\Ax86_64.*darwin/
@@ -49,7 +49,7 @@ module Emf2svg
         when /\Aarm64.*darwin/
           "arm64-darwin"
         else
-          raise "CrossRuby.platform: unsupported host: #{@host}"
+          @host
         end
     end
     # rubocop:enable Metrics/CyclomaticComplexity
