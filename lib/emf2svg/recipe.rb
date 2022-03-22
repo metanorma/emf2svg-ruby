@@ -40,9 +40,7 @@ module Emf2svg
           "x86-mingw32"
         when /\Ax86_64.*linux/
           "x86_64-linux"
-        when /\Aarm64.*linux/
-          "arm64-linux"
-        when /\Aaarch64.*linux/
+        when /\A(arm64|aarch64).*linux/
           "arm64-linux"
         when /\Ai[3-6]86.*linux/
           "x86-linux"
