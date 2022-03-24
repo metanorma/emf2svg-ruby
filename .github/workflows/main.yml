@@ -2,7 +2,7 @@ name: main
 
 on:
   push:
-    branches: [ main ]
+#    branches: [ main ]
   pull_request:
   workflow_dispatch:
 
@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 3
+      max-parallel: 4
       fail-fast: false
       matrix:
         os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
@@ -31,7 +31,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 3
+      max-parallel: 4
       fail-fast: false
       matrix:
         include:
@@ -76,7 +76,7 @@ jobs:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 3
+      max-parallel: 4
       fail-fast: false
       matrix:
         include:
@@ -132,17 +132,21 @@ jobs:
   cross:
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 3
+      max-parallel: 4
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-latest
             platform: arm64-linux
+            ruby-version: '2.7'
+          - os: macos-latest
+            platform: arm64-darwin
             ruby-version: '2.7'
     steps:
       - uses: actions/checkout@v2
 
       - name: Install packages
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf

@@ -8,11 +8,11 @@ module Emf2svg
     ROOT = Pathname.new(File.expand_path("../..", __dir__))
 
     def initialize
-      super("libemf2svg", "1.4.0")
+      super("libemf2svg", "1.6.0")
 
       @files << {
-        url: "https://github.com/metanorma/libemf2svg/releases/download/v1.4.0/libemf2svg.tar.gz",
-        sha256: "e05081986a0ec6c5bd494068825c7b55dd21fa1814942a61293b225af2d957d2", # rubocop:disable Layout/LineLength
+        url: "https://github.com/metanorma/libemf2svg/releases/download/v1.6.0/libemf2svg.tar.gz",
+        sha256: "0f186f40b98c06acdec1278a314cEc1f093e7504d34f7a15b697ebfe6c4d3097", # rubocop:disable Layout/LineLength
       }
 
       @target = ROOT.join(@target).to_s
@@ -44,20 +44,43 @@ module Emf2svg
           "arm64-linux"
         when /\Ai[3-6]86.*linux/
           "x86-linux"
-        when /\Ax86_64.*darwin/
+        when /\Ax86_64.*(darwin|macos|osx)/
           "x86_64-darwin"
-        when /\Aarm64.*darwin/
+        when /\A(arm64|aarch64).*(darwin|macos|osx)/
           "arm64-darwin"
         else
           @host
         end
     end
-    # rubocop:enable Metrics/CyclomaticComplexity
-    # rubocop:enable Metrics/MethodLength
 
     def target_platform
-      @target_platform = ENV["target_platform"] || host_platform
+      @target_platform ||=
+        case ENV["target_platform"]
+        when /\A(arm64|aarch64).*(darwin|macos|osx)/
+          "arm64-darwin"
+        when /\Ac86_64.*(darwin|macos|osx)/
+          "x86_64-darwin"
+        when /\A(arm64|aarch64).*linux/
+          "arm64-linux"
+        else
+          ENV["target_platform"] || host_platform
+        end
     end
+
+    def target_triplet
+      @target_triplet ||=
+        case target_platform
+        when "arm64-darwin"
+          "arm64-osx"
+        when "x86_64-darwin"
+          "x86_64-osx"
+        else
+          target_platform
+        end
+    end
+
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/MethodLength
 
     def cross_compiling?
       not host_platform.eql? target_platform
@@ -78,7 +101,7 @@ module Emf2svg
 
       if cross_compiling? && (not MiniPortile.windows?)
         message("Cross-compiling on #{host_platform} for #{target_platform}\n")
-        opts << "-DVCPKG_TARGET_TRIPLET=#{target_platform}"
+        opts << "-DVCPKG_TARGET_TRIPLET=#{target_triplet}"
       end
 
       opts
