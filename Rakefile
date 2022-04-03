@@ -34,17 +34,9 @@ platforms = [
   "x64-mingw32",
   "x64-mingw-ucrt",
   "x86_64-linux",
-  "arm64-linux",
   "aarch64-linux",
   "x86_64-darwin",
   "arm64-darwin",
-  "aarch64-darwin",
-  "x86_64-macos",
-  "arm64-macos",
-  "aarch64-macos",
-  "x86_64-osx",
-  "arm64-osx",
-  "aarch64-osx",
 ]
 
 platforms.each do |platform|

@@ -137,7 +137,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            platform: arm64-linux
+            platform: aarch64-linux
             ruby-version: '2.7'
           - os: macos-latest
             platform: arm64-darwin
