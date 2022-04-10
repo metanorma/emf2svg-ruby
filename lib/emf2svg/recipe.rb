@@ -8,11 +8,11 @@ module Emf2svg
     ROOT = Pathname.new(File.expand_path("../..", __dir__))
 
     def initialize
-      super("libemf2svg", "1.6.0")
+      super("libemf2svg", "1.7.0")
 
       @files << {
-        url: "https://github.com/metanorma/libemf2svg/releases/download/v1.6.0/libemf2svg.tar.gz",
-        sha256: "0f186f40b98c06acdec1278a314cEc1f093e7504d34f7a15b697ebfe6c4d3097", # rubocop:disable Layout/LineLength
+        url: "https://github.com/metanorma/libemf2svg/releases/download/v1.7.0/libemf2svg.tar.gz",
+        sha256: "a87a02510f87ed4510a3426fa8636b340e26d96f25edf63c3ba465e7e9d7e2eb", # rubocop:disable Layout/LineLength
       }
 
       @target = ROOT.join(@target).to_s
