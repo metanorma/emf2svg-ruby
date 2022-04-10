@@ -25,7 +25,6 @@ module Emf2svg
 
     def cook
       super
-
       FileUtils.touch(checkpoint)
     end
 
@@ -58,10 +57,10 @@ module Emf2svg
         case ENV["target_platform"]
         when /\A(arm64|aarch64).*(darwin|macos|osx)/
           "arm64-darwin"
-        when /\Ac86_64.*(darwin|macos|osx)/
+        when /\Ax86_64.*(darwin|macos|osx)/
           "x86_64-darwin"
         when /\A(arm64|aarch64).*linux/
-          "arm64-linux"
+          "aarch64-linux"
         else
           ENV["target_platform"] || host_platform
         end
@@ -73,18 +72,19 @@ module Emf2svg
         when "arm64-darwin"
           "arm64-osx"
         when "x86_64-darwin"
-          "x86_64-osx"
+          "x64-osx"
+        when "aarch64-linux"
+          "arm64-linux"
+        when "x86_64-linux"
+          "x64-linux"
+        when /\Ax64-mingw(32|-ucrt)/
+          "x64-mingw-static"
         else
-          target_platform
+          "unknown"
         end
     end
-
     # rubocop:enable Metrics/CyclomaticComplexity
     # rubocop:enable Metrics/MethodLength
-
-    def cross_compiling?
-      not host_platform.eql? target_platform
-    end
 
     def checkpoint
       File.join(@target, "#{name}-#{version}-#{target_platform}.installed")
@@ -94,15 +94,13 @@ module Emf2svg
       opts = []
 
       opts << "-DCMAKE_BUILD_TYPE=Release"
+      opts << "-DLONLY=ON"
 
-      if MiniPortile.windows? || cross_compiling?
-        opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
+      if not target_triplet.eql? "unknown" and not host_platform.eql? target_platform
+        opts << " -DVCPKG_TARGET_TRIPLET=#{target_triplet}"
       end
 
-      if cross_compiling? && (not MiniPortile.windows?)
-        message("Cross-compiling on #{host_platform} for #{target_platform}\n")
-        opts << "-DVCPKG_TARGET_TRIPLET=#{target_triplet}"
-      end
+      opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
 
       opts
     end
@@ -116,6 +114,7 @@ module Emf2svg
     end
 
     def install
+      message("Called install\n")
       libs = if MiniPortile.windows?
                Dir.glob(File.join(work_path, "Release", "*.dll"))
              else
@@ -144,7 +143,8 @@ module Emf2svg
     private
 
     def tmp_path
-      @tmp_path ||= Dir.mktmpdir
+#      @tmp_path ||= Dir.mktmpdir
+      @tmp_path = "/tmp/1"
     end
 
     def port_path

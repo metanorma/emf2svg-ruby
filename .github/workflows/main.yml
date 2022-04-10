@@ -19,19 +19,18 @@ jobs:
           - os: windows-latest
             ruby-version: '3.1'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - uses: ruby/setup-ruby@v1
       with:
         bundler-cache: true
         ruby-version: ${{ matrix.ruby-version }}
 
-    - run: bundle exec rake
+    - run: bundle exec rake --trace || cat /tmp/1/configure.log
 
   build:
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 4
       fail-fast: false
       matrix:
         include:
@@ -58,7 +57,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
 
-      - run: bundle exec rake gem:native:${{ matrix.platform }}
+      - run: bundle exec rake gem:native:${{ matrix.platform }} --trace
 
       - uses: actions/upload-artifact@v2
         with:
@@ -76,7 +75,6 @@ jobs:
     needs: build
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 4
       fail-fast: false
       matrix:
         include:
@@ -124,7 +122,6 @@ jobs:
       - name: Install binary gem
         if: matrix.platform != 'any'
         run: gem install -b pkg/emf2svg-*-${{ matrix.platform }}.gem
-
       - name: Test conversion
         run: |
           ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
@@ -132,8 +129,6 @@ jobs:
   cross:
     runs-on: ${{ matrix.os }}
     strategy:
-      max-parallel: 4
-      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
