@@ -80,7 +80,7 @@ module Emf2svg
         when /\Ax64-mingw(32|-ucrt)/
           "x64-mingw-static"
         else
-          "unknown"
+          nil
         end
     end
     # rubocop:enable Metrics/CyclomaticComplexity
@@ -96,7 +96,7 @@ module Emf2svg
       opts << "-DCMAKE_BUILD_TYPE=Release"
       opts << "-DLONLY=ON"
 
-      if not target_triplet.eql? "unknown" and not host_platform.eql? target_platform
+      unless target_triplet.nil? "unknown" or host_platform.eql? target_platform
         opts << " -DVCPKG_TARGET_TRIPLET=#{target_triplet}"
       end
 
@@ -143,8 +143,7 @@ module Emf2svg
     private
 
     def tmp_path
-#      @tmp_path ||= Dir.mktmpdir
-      @tmp_path = "/tmp/1"
+      @tmp_path ||= Dir.mktmpdir
     end
 
     def port_path
