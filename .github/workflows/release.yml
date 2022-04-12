@@ -2,8 +2,8 @@ name: release
 
 on:
   push:
-#    tags:
-#      - 'v*'
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -121,5 +121,4 @@ jobs:
         EOF
         chmod 0600 ~/.gem/credentials
         gem signin
-        ls -l pkg/
-        for gem in pkg/*.gem; do echo "gem push -V $gem"; done
+        for gem in pkg/*.gem; do gem push -V $gem; done
