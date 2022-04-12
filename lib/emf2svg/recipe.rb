@@ -35,14 +35,10 @@ module Emf2svg
         case @host
         when /\Ax86_64.*mingw32/
           "x64-mingw32"
-        when /\Ai[3-6]86.*mingw32/
-          "x86-mingw32"
         when /\Ax86_64.*linux/
           "x86_64-linux"
         when /\A(arm64|aarch64).*linux/
           "arm64-linux"
-        when /\Ai[3-6]86.*linux/
-          "x86-linux"
         when /\Ax86_64.*(darwin|macos|osx)/
           "x86_64-darwin"
         when /\A(arm64|aarch64).*(darwin|macos|osx)/
@@ -79,12 +75,18 @@ module Emf2svg
           "x64-linux"
         when /\Ax64-mingw(32|-ucrt)/
           "x64-mingw-static"
-        else
-          nil
         end
     end
     # rubocop:enable Metrics/CyclomaticComplexity
     # rubocop:enable Metrics/MethodLength
+
+    def windows_native?
+      MiniPortile.windows? && target_triplet.eql?("x64-mingw-static")
+    end
+
+    def drop_target_triplet?
+      windows_native? || host_platform.eql?(target_platform)
+    end
 
     def checkpoint
       File.join(@target, "#{name}-#{version}-#{target_platform}.installed")
@@ -96,7 +98,7 @@ module Emf2svg
       opts << "-DCMAKE_BUILD_TYPE=Release"
       opts << "-DLONLY=ON"
 
-      unless target_triplet.nil? "unknown" or host_platform.eql? target_platform
+      unless target_triplet.nil? || drop_target_triplet?
         opts << " -DVCPKG_TARGET_TRIPLET=#{target_triplet}"
       end
 
