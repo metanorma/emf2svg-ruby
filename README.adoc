@@ -28,7 +28,7 @@ gem 'emf2svg'
 ----
 
 === Packaging
-We distribute pre-compiled libraries for a set of machine architecture. On supported platforms, this removes the need 
+We distribute pre-compiled libraries for a set of machine architecture. On supported platforms, this removes the need
 for compiling the C extension and installation of system dependencies. This results in much faster and more reliable installation.
 
 ==== Native extensions

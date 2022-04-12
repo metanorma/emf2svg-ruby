@@ -31,7 +31,7 @@ jobs:
 # no good solution :(
     - name: Workaround for vcpkg
       if: startsWith(matrix.os, 'ubuntu')
-      run: | 
+      run: |
         sudo apt-get update
         sudo apt-get install gperf
 
@@ -68,7 +68,7 @@ jobs:
 
     - name: Workaround for vcpkg
       if: startsWith(matrix.os, 'ubuntu')
-      run: | 
+      run: |
         sudo apt-get update
         sudo apt-get install gperf
 
@@ -117,7 +117,7 @@ jobs:
           - os: macos-latest
             platform: x86_64-darwin
             ruby-version: '2.7'
-            
+
     steps:
     - uses: actions/checkout@v2
 
@@ -132,7 +132,7 @@ jobs:
 
     - name: Workaround for vcpkg
       if: startsWith(matrix.os, 'ubuntu')
-      run: | 
+      run: |
         sudo apt-get update
         sudo apt-get install gperf
 
@@ -167,7 +167,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
-        
+
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
