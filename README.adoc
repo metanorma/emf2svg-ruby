@@ -1,13 +1,18 @@
+image:https://github.com/metanorma/emf2svg-ruby/actions/workflows/build.yml/badge.svg["Build", link="https://github.com/metanorma/emf2svg-ruby/actions/workflows/build.yml"]
+image:https://badge.fury.io/rb/emf2svg.svg["Gem Version", link="https://badge.fury.io/rb/emf2svg"]
+
+
 = emf2svg
 
-== Purpose
-
-Provides Ruby access to https://github.com/kakwa/libemf2svg (temporarily using
+== Overview
+emf2svg-ruby provides Ruby front-end to emf to svg converter https://github.com/kakwa/libemf2svg (temporarily using
 the https://github.com/metanorma/libemf2svg[Metanorma fork] until upstreaming
 is complete).
 
-== Installation
+== Requirements:
+Ruby >= 2.6
 
+== Installation
 Install the gem directly:
 
 [source,sh]
@@ -22,19 +27,28 @@ Or add it to your `Gemfile`:
 gem 'emf2svg'
 ----
 
-=== Dependencies
+=== Packaging
+We distribute pre-compiled libraries for a set of machine architecture. On supported platforms, this removes the need
+for compiling the C extension and installation of system dependencies. This results in much faster and more reliable installation.
 
-* libiconv
-* libpng
-* libfontconfig
-* libfreetype
+==== Native extensions
+* x86_64-linux   (GNU and musl flavors)
+* aarch64-linux  (GNU and musl flavors)
+* x86_64-darwin
+* arm64-darwin
+* x64-mingw32
+* x64-mingw-ucrt
+
+=== Building GEM from source
+emf2svg build script maintaince and installs all required libraries and other dependencies using vcpkg package manager
+You still need to install appropriate build system (like gcc, clang or Visual Studio) and cmake
+On Debian systems there is vcpkg bug [https://github.com/microsoft/vcpkg/issues/15931] that needs to be addressed by installing gperf package:
 
 ==== Windows
 
 On Windows all necessary libraries are precompiled but you'll need Visual
 Studio 2019 with C++ Build Tools, which can be downloaded
-https://visualstudio.microsoft.com/downloads/[here], or installed with
-Chocolatey:
+https://visualstudio.microsoft.com/downloads/[here], or installed with Chocolatey:
 
 [source,sh]
 ----
@@ -55,22 +69,16 @@ brew install cmake
 [source,sh]
 ----
 # compiler
-apt-get install gcc g++
+apt-get install gcc g++ gperf cmake pkg-config
 # or
-apt-get install clang
-
-# build deps
-apt-get install cmake pkg-config
-
-# library deps with their headers
-apt-get install libpng-dev libc6-dev libfontconfig1-dev libfreetype6-dev zlib1g-dev
+apt-get install clang gperf cmake pkg-config
 ----
 
 ===== Fedora
 
 [source,sh]
 ----
-yum install cmake libpng-devel freetype-devel fontconfig-devel gcc-c++ gcc
+yum install cmake gcc-c++ gcc
 ----
 
 == Usage

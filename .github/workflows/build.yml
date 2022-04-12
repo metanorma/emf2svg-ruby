@@ -1,0 +1,184 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '*.adoc'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        ruby-version: [ '2.7' ]
+        include:
+          - os: windows-latest
+            ruby-version: '3.1'
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+        ruby-version: ${{ matrix.ruby-version }}
+
+# https://github.com/microsoft/vcpkg/issues/15931
+# no good solution :(
+    - name: Workaround for vcpkg
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install gperf
+
+    - run: bundle exec rake
+
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            platform: any
+            ruby-version: '2.7'
+          - os: ubuntu-18.04
+            platform: x86_64-linux
+            ruby-version: '2.7'
+          - os: windows-latest
+            platform: x64-mingw32
+            ruby-version: '2.7'
+          - os: windows-latest
+            platform: x64-mingw-ucrt
+            ruby-version: '3.1'
+          - os: macos-latest
+            platform: x86_64-darwin
+            ruby-version: '2.7'
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+
+    - name: Workaround for vcpkg
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install gperf
+
+    - run: bundle exec rake gem:native:${{ matrix.platform }}
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: pkg
+        path: pkg/*.gem
+
+    - name: Install gem
+      run: gem install -b pkg/emf2svg-*.gem
+
+    - name: Test conversion
+      run: |
+        ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+  test-build:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: any
+            ruby-version: '2.7'
+          - os: windows-latest
+            platform: any
+            ruby-version: '2.7'
+          - os: macos-latest
+            platform: any
+            ruby-version: '2.7'
+          - os: ubuntu-18.04
+            platform: x86_64-linux
+            ruby-version: '2.7'
+          - os: ubuntu-latest
+            platform: x86_64-linux
+            ruby-version: '2.7'
+          - os: windows-latest
+            platform: x64-mingw32
+            ruby-version: '2.7'
+          - os: windows-latest
+            platform: x64-mingw-ucrt
+            ruby-version: '3.1'
+          - os: macos-latest
+            platform: x86_64-darwin
+            ruby-version: '2.7'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: pkg
+        path: pkg
+
+    - name: Workaround for vcpkg
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install gperf
+
+    - name: Install native gem
+      if: matrix.platform == 'any'
+      run: gem install -b pkg/emf2svg-$(ruby -I lib -r emf2svg/version -e "puts Emf2svg::VERSION").gem
+
+    - name: Install binary gem
+      if: matrix.platform != 'any'
+      run: gem install -b pkg/emf2svg-*-${{ matrix.platform }}.gem
+
+    - name: Test conversion
+      run: |
+        ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+  cross:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: aarch64-linux
+            ruby-version: '2.7'
+          - os: macos-latest
+            platform: arm64-darwin
+            ruby-version: '2.7'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install packages
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+
+    - run: bundle exec rake gem:native:${{ matrix.platform }}
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: pkg
+        path: pkg/*.gem
+
+    - name: Install gem
+      run: gem install -b pkg/emf2svg-*.gem

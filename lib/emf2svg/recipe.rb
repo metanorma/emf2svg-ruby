@@ -8,11 +8,11 @@ module Emf2svg
     ROOT = Pathname.new(File.expand_path("../..", __dir__))
 
     def initialize
-      super("libemf2svg", "1.6.0")
+      super("libemf2svg", "1.7.0")
 
       @files << {
-        url: "https://github.com/metanorma/libemf2svg/releases/download/v1.6.0/libemf2svg.tar.gz",
-        sha256: "0f186f40b98c06acdec1278a314cEc1f093e7504d34f7a15b697ebfe6c4d3097", # rubocop:disable Layout/LineLength
+        url: "https://github.com/metanorma/libemf2svg/releases/download/v1.7.0/libemf2svg.tar.gz",
+        sha256: "a87a02510f87ed4510a3426fa8636b340e26d96f25edf63c3ba465e7e9d7e2eb", # rubocop:disable Layout/LineLength
       }
 
       @target = ROOT.join(@target).to_s
@@ -25,7 +25,6 @@ module Emf2svg
 
     def cook
       super
-
       FileUtils.touch(checkpoint)
     end
 
@@ -36,14 +35,10 @@ module Emf2svg
         case @host
         when /\Ax86_64.*mingw32/
           "x64-mingw32"
-        when /\Ai[3-6]86.*mingw32/
-          "x86-mingw32"
         when /\Ax86_64.*linux/
           "x86_64-linux"
         when /\A(arm64|aarch64).*linux/
           "arm64-linux"
-        when /\Ai[3-6]86.*linux/
-          "x86-linux"
         when /\Ax86_64.*(darwin|macos|osx)/
           "x86_64-darwin"
         when /\A(arm64|aarch64).*(darwin|macos|osx)/
@@ -58,10 +53,10 @@ module Emf2svg
         case ENV["target_platform"]
         when /\A(arm64|aarch64).*(darwin|macos|osx)/
           "arm64-darwin"
-        when /\Ac86_64.*(darwin|macos|osx)/
+        when /\Ax86_64.*(darwin|macos|osx)/
           "x86_64-darwin"
         when /\A(arm64|aarch64).*linux/
-          "arm64-linux"
+          "aarch64-linux"
         else
           ENV["target_platform"] || host_platform
         end
@@ -73,17 +68,24 @@ module Emf2svg
         when "arm64-darwin"
           "arm64-osx"
         when "x86_64-darwin"
-          "x86_64-osx"
-        else
-          target_platform
+          "x64-osx"
+        when "aarch64-linux"
+          "arm64-linux"
+        when "x86_64-linux"
+          "x64-linux"
+        when /\Ax64-mingw(32|-ucrt)/
+          "x64-mingw-static"
         end
     end
-
     # rubocop:enable Metrics/CyclomaticComplexity
     # rubocop:enable Metrics/MethodLength
 
-    def cross_compiling?
-      not host_platform.eql? target_platform
+    def windows_native?
+      MiniPortile.windows? && target_triplet.eql?("x64-mingw-static")
+    end
+
+    def drop_target_triplet?
+      windows_native? || host_platform.eql?(target_platform)
     end
 
     def checkpoint
@@ -94,15 +96,13 @@ module Emf2svg
       opts = []
 
       opts << "-DCMAKE_BUILD_TYPE=Release"
+      opts << "-DLONLY=ON"
 
-      if MiniPortile.windows? || cross_compiling?
-        opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
+      unless target_triplet.nil? || drop_target_triplet?
+        opts << " -DVCPKG_TARGET_TRIPLET=#{target_triplet}"
       end
 
-      if cross_compiling? && (not MiniPortile.windows?)
-        message("Cross-compiling on #{host_platform} for #{target_platform}\n")
-        opts << "-DVCPKG_TARGET_TRIPLET=#{target_triplet}"
-      end
+      opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
 
       opts
     end
@@ -116,6 +116,7 @@ module Emf2svg
     end
 
     def install
+      message("Called install\n")
       libs = if MiniPortile.windows?
                Dir.glob(File.join(work_path, "Release", "*.dll"))
              else
