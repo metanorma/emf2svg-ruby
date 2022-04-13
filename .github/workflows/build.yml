@@ -46,6 +46,7 @@ jobs:
           - os: ubuntu-18.04
             platform: any
             ruby-version: '2.7'
+            file: 'skip'
           - os: ubuntu-18.04
             platform: x86_64-linux
             ruby-version: '2.7'
@@ -53,9 +54,11 @@ jobs:
           - os: windows-latest
             platform: x64-mingw32
             ruby-version: '2.7'
+            file: 'skip'
           - os: windows-latest
             platform: x64-mingw-ucrt
             ruby-version: '3.1'
+            file: 'skip'
           - os: macos-latest
             platform: x86_64-darwin
             ruby-version: '2.7'
@@ -89,7 +92,7 @@ jobs:
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
 
     - name: Check file format
-      if: matrix.platform != 'any' && matrix.os != 'windows-latest'
+      if: matrix.file != 'skip'
       run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep ${{ matrix.file }}
 
   test-build:
