@@ -38,6 +38,7 @@ jobs:
     - run: bundle exec rake
 
   build:
+    name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -158,6 +159,7 @@ jobs:
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
 
   cross:
+    name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
