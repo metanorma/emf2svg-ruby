@@ -101,9 +101,12 @@ jobs:
         path: tests/shunit2
         fetch-depth: 1      
 
-    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
+    - run: |
+        ls pkg
+        ls pkg/*
+        file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
 
-    - run: ext/spec/lcheck.sh   
+    - run: ${{ env.BREW_HOME }}/bin/bash ext/tests/lcheck.sh   
 
   test-build:
     needs: build
@@ -170,6 +173,7 @@ jobs:
   cross:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -219,4 +223,4 @@ jobs:
 
     - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
 
-    - run: ext/spec/lcheck.sh
+    - run: ext/tests/lcheck.sh

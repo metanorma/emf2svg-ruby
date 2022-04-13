@@ -27,6 +27,23 @@
 
 set -o errexit -o pipefail -o noclobber -o nounset
 
+# Checks file format
+test_file_format() {
+    echo "==> File format test"    
+    if [[ "$OSTYPE" == "linux"* ]]; then
+        echo $OSTYPE
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo $OSTYPE
+    elif [[ "$OSTYPE" == "msys"* ]]; then
+        echo $OSTYPE
+    else
+        echo "... unknown - $OSTYPE ... skipping"
+    fi
+}
+
+}
+
+
 # Checks referenced shared libraries
 check_shared_libs() {
     expected_size="${#expected[@]}"
