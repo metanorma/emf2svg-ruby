@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [ main ]
+#    branches: [ main ]
     paths-ignore:
       - '*.adoc'
   pull_request:
@@ -148,6 +148,8 @@ jobs:
       run: |
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
 
+    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
+
   cross:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -174,6 +176,8 @@ jobs:
         bundler-cache: true
 
     - run: bundle exec rake gem:native:${{ matrix.platform }}
+
+    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
 
     - uses: actions/upload-artifact@v2
       with:
