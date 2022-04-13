@@ -41,9 +41,6 @@ test_file_format() {
     fi
 }
 
-}
-
-
 # Checks referenced shared libraries
 check_shared_libs() {
     expected_size="${#expected[@]}"

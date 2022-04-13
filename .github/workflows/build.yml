@@ -102,8 +102,7 @@ jobs:
         fetch-depth: 1      
 
     - run: |
-        ls pkg
-        ls pkg/*
+        ls pkg/*/lib
         file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
 
     - run: ${{ env.BREW_HOME }}/bin/bash ext/tests/lcheck.sh   
