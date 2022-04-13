@@ -49,6 +49,7 @@ jobs:
           - os: ubuntu-18.04
             platform: x86_64-linux
             ruby-version: '2.7'
+            file: 'ELF 64-bit LSB shared object, x86-64'
           - os: windows-latest
             platform: x64-mingw32
             ruby-version: '2.7'
@@ -58,6 +59,7 @@ jobs:
           - os: macos-latest
             platform: x86_64-darwin
             ruby-version: '2.7'
+            file: 'Mach-O 64-bit dynamically linked shared library x86_64'
     steps:
     - uses: actions/checkout@v3
 
@@ -72,14 +74,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install gperf
 
-    - name: Setup MacOS environment
-      if: matrix.os == 'macos-latest'
-      run: |
-        echo 'BREW_HOME<<EOF' >> $GITHUB_ENV
-        brew --prefix >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
-        brew install bash
-        
     - run: bundle exec rake gem:native:${{ matrix.platform }}
 
     - uses: actions/upload-artifact@v2
@@ -94,18 +88,9 @@ jobs:
       run: |
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
 
-    - name: Checkout shell test framework
-      uses: actions/checkout@v3
-      with:
-        repository: kward/shunit2
-        path: ext/shunit2
-        fetch-depth: 1      
-
-    - run: |
-        ls pkg/*/lib/emf2svg
-        file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
-
-    - run: ${{ env.BREW_HOME }}/bin/bash ext/tests/lcheck.sh   
+    - name: Check file format
+      if: matrix.platform != 'any' && matrix.os != 'windows-latest'
+      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep ${{ matrix.file }}
 
   test-build:
     needs: build
@@ -178,9 +163,11 @@ jobs:
           - os: ubuntu-latest
             platform: aarch64-linux
             ruby-version: '2.7'
+            file: 'ELF 64-bit LSB shared object, ARM aarch64'
           - os: macos-latest
             platform: arm64-darwin
             ruby-version: '2.7'
+            file: 'Mach-O 64-bit dynamically linked shared library arm64'
     steps:
     - uses: actions/checkout@v3
 
@@ -189,14 +176,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
-
-    - name: Setup MacOS environment
-      if: matrix.os == 'macos-latest'
-      run: |
-        echo 'BREW_HOME<<EOF' >> $GITHUB_ENV
-        brew --prefix >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
-        brew install bash
 
     - uses: ruby/setup-ruby@v1
       with:
@@ -213,13 +192,5 @@ jobs:
     - name: Install gem
       run: gem install -b pkg/emf2svg-*.gem
 
-    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
-
-    - name: Checkout shell test framework
-      uses: actions/checkout@v3
-      with:
-        repository: kward/shunit2
-        path: ext/shunit2
-        fetch-depth: 1
-
-    - run: ext/tests/lcheck.sh
+    - name: Check file format
+      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep ${{ matrix.file }}

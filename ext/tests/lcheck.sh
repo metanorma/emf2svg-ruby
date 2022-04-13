@@ -31,7 +31,7 @@ set -o errexit -o pipefail -o noclobber -o nounset
 test_file_format() {
     echo "==> File format test"    
     if [[ "$OSTYPE" == "linux"* ]]; then
-        echo $OSTYPE
+         ELF 64-bit LSB shared object, x86-64
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         echo $OSTYPE
     elif [[ "$OSTYPE" == "msys"* ]]; then
