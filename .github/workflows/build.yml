@@ -72,6 +72,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install gperf
 
+    - name: Setup MacOS environment
+      if: matrix.os == 'macos-latest'
+      run: |
+        echo 'BREW_HOME<<EOF' >> $GITHUB_ENV
+        brew --prefix >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
+        brew install bash
+        
     - run: bundle exec rake gem:native:${{ matrix.platform }}
 
     - uses: actions/upload-artifact@v2
@@ -85,6 +93,17 @@ jobs:
     - name: Test conversion
       run: |
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+    - name: Checkout shell test framework
+      uses: actions/checkout@v3
+      with:
+        repository: kward/shunit2
+        path: tests/shunit2
+        fetch-depth: 1      
+
+    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
+
+    - run: ext/spec/lcheck.sh   
 
   test-build:
     needs: build
@@ -136,14 +155,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install gperf
 
-    - name: Setup MacOS environment
-      if: matrix.os == 'macos-latest'
-      run: |
-        echo 'BREW_HOME<<EOF' >> $GITHUB_ENV
-        brew --prefix >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
-        brew install bash
-        
     - name: Install native gem
       if: matrix.platform == 'any'
       run: gem install -b pkg/emf2svg-$(ruby -I lib -r emf2svg/version -e "puts Emf2svg::VERSION").gem
@@ -155,15 +166,6 @@ jobs:
     - name: Test conversion
       run: |
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
-
-    - name: Checkout shell test framework
-      uses: actions/checkout@v3
-      with:
-        repository: kward/shunit2
-        path: tests/shunit2
-        fetch-depth: 1      
-
-    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
 
   cross:
     runs-on: ${{ matrix.os }}
@@ -200,8 +202,6 @@ jobs:
 
     - run: bundle exec rake gem:native:${{ matrix.platform }}
 
-    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
-
     - uses: actions/upload-artifact@v2
       with:
         name: pkg
@@ -216,5 +216,7 @@ jobs:
         repository: kward/shunit2
         path: tests/shunit2
         fetch-depth: 1
+
+    - run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*)
 
     - run: ext/spec/lcheck.sh
