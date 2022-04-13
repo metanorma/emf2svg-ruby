@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-  #    branches: [ main ]
+    branches: [ main ]
     paths-ignore:
       - '*.adoc'
   pull_request:
