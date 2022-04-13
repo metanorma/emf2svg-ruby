@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-#    branches: [ main ]
+  #    branches: [ main ]
     paths-ignore:
       - '*.adoc'
   pull_request:
@@ -93,7 +93,7 @@ jobs:
 
     - name: Check file format
       if: matrix.file != 'skip'
-      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep ${{ matrix.file }}
+      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep "${{ matrix.file }}"
 
   test-build:
     needs: build
@@ -196,4 +196,4 @@ jobs:
       run: gem install -b pkg/emf2svg-*.gem
 
     - name: Check file format
-      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep ${{ matrix.file }}
+      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep "${{ matrix.file }}"
