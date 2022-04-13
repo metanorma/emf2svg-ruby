@@ -99,7 +99,7 @@ module Emf2svg
       opts << "-DLONLY=ON"
 
       unless target_triplet.nil? || drop_target_triplet?
-        opts << " -DVCPKG_TARGET_TRIPLET=#{target_triplet}"
+        opts << "-DVCPKG_TARGET_TRIPLET=#{target_triplet}"
       end
 
       opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
