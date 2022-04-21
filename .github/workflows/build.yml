@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
@@ -202,7 +202,7 @@ jobs:
         path: pkg/*.gem
 
     - name: Install gem
-      run: gem install -b pkg/emf2svg-*.gem
+      run: gem install -b pkg/emf2svg-*-${{ matrix.platform }}.gem
 
     - name: Check file format
       run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep "${{ matrix.file }}"
@@ -214,5 +214,5 @@ jobs:
         path: tests/shunit2
         fetch-depth: 1
 
-#    - name: Run additional tests
-#      run: ${{ env.BREW_HOME }}/bin/bash tests/lcheck.sh
+    - name: Run additional tests
+      run: ${{ env.BREW_HOME }}/bin/bash tests/lcheck.sh

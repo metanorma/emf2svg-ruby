@@ -2,6 +2,7 @@ require "rbconfig"
 require "mini_portile2"
 require "pathname"
 require "tmpdir"
+require_relative "version"
 
 module Emf2svg
   class Recipe < MiniPortileCMake
@@ -50,7 +51,7 @@ module Emf2svg
 
     def target_platform
       @target_platform ||=
-        case ENV["target_platform"]
+        case ENV.fetch("target_platform", nil)
         when /\A(arm64|aarch64).*(darwin|macos|osx)/
           "arm64-darwin"
         when /\Ax86_64.*(darwin|macos|osx)/
@@ -58,7 +59,7 @@ module Emf2svg
         when /\A(arm64|aarch64).*linux/
           "aarch64-linux"
         else
-          ENV["target_platform"] || host_platform
+          ENV.fetch("target_platform", host_platform)
         end
     end
 
@@ -128,6 +129,7 @@ module Emf2svg
     end
 
     def execute(action, command, command_opts = {})
+      puts("=== execute : #{action}, #{command} ===")
       super(action, command, command_opts.merge(debug: true))
     end
 
