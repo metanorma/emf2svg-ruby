@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Ribose"]
   spec.email         = ["open.source@ribose.com"]
 
-  spec.summary       = "Ruby interface to libemf2svg."
+  spec.summary       = "EMF to SVG conversion in Ruby."
   spec.homepage      = "https://github.com/metanorma/emf2svg-ruby"
   spec.license       = "BSD-2-Clause"
   spec.required_ruby_version = ">= 2.6.0"

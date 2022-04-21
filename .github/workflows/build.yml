@@ -15,10 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
-        ruby-version: [ '2.7' ]
-        include:
-          - os: windows-latest
-            ruby-version: '3.1'
+        ruby-version: [ '2.7', '3.0', '3.1' ]
+
     steps:
     - uses: actions/checkout@v3
 
@@ -67,7 +65,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - name: Setup Ruby
+      uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
@@ -176,13 +175,21 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install packages
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install Ubuntu packages
+      if: startsWith(matrix.os, 'ubuntu')
       run: |
         sudo apt-get update
         sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
 
-    - uses: ruby/setup-ruby@v1
+    - name: Setup MacOS environment
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        echo 'BREW_HOME<<EOF' >> $GITHUB_ENV
+        brew --prefix >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
+
+    - name: Install Ruby
+      uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
@@ -199,3 +206,13 @@ jobs:
 
     - name: Check file format
       run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep "${{ matrix.file }}"
+
+    - name: Checkout shell test framework
+      uses: actions/checkout@v3
+      with:
+        repository: kward/shunit2
+        path: tests/shunit2
+        fetch-depth: 1
+
+#    - name: Run additional tests
+#      run: ${{ env.BREW_HOME }}/bin/bash tests/lcheck.sh
