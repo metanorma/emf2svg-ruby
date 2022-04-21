@@ -4,11 +4,10 @@
 require "emf2svg"
 
 def print_usage
-  usage = %{
-    Usage: emf2svg <input> <output>
-        <input>  -- emf file to convert
-        <output> -- svg file to save
-    }
+  usage = %{Usage: emf2svg <input> <output>
+  <input>  -- emf file to convert
+  <output> -- svg file to save
+}
   puts usage
 end
 
@@ -21,6 +20,6 @@ begin
   svg = Emf2svg.from_file(ARGV[0])
   File.write(ARGV[1], svg, mode: "wb")
 rescue StandardError => e
-  puts "Failed to process #{ARGV[0]}: #{e.message}"
+  puts "ERROR: Failed to process #{ARGV[0]}: #{e.message}"
   print_usage
 end

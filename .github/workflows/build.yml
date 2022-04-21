@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
@@ -45,23 +45,18 @@ jobs:
           - os: ubuntu-18.04
             platform: any
             ruby-version: '2.7'
-            file: 'skip'
           - os: ubuntu-18.04
             platform: x86_64-linux
             ruby-version: '2.7'
-            file: 'ELF 64-bit LSB shared object, x86-64'
           - os: windows-latest
             platform: x64-mingw32
             ruby-version: '2.7'
-            file: 'skip'
           - os: windows-latest
             platform: x64-mingw-ucrt
             ruby-version: '3.1'
-            file: 'skip'
           - os: macos-latest
             platform: x86_64-darwin
             ruby-version: '2.7'
-            file: 'Mach-O 64-bit dynamically linked shared library x86_64'
     steps:
     - uses: actions/checkout@v3
 
@@ -84,48 +79,78 @@ jobs:
         name: pkg
         path: pkg/*.gem
 
-    - name: Install gem
-      run: gem install -b pkg/emf2svg-*.gem
-
-    - name: Test conversion
-      run: |
-        ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
-
-    - name: Check file format
-      if: matrix.file != 'skip'
-      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep "${{ matrix.file }}"
-
-  test-build:
-    needs: build
+  cross-build:
+    name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            platform: any
-            ruby-version: '2.7'
-          - os: windows-latest
-            platform: any
+            platform: aarch64-linux
             ruby-version: '2.7'
           - os: macos-latest
-            platform: any
+            platform: arm64-darwin
             ruby-version: '2.7'
-          - os: ubuntu-18.04
-            platform: x86_64-linux
-            ruby-version: '2.7'
-          - os: ubuntu-latest
-            platform: x86_64-linux
-            ruby-version: '2.7'
-          - os: windows-latest
-            platform: x64-mingw32
-            ruby-version: '2.7'
-          - os: windows-latest
-            platform: x64-mingw-ucrt
-            ruby-version: '3.1'
-          - os: macos-latest
-            platform: x86_64-darwin
-            ruby-version: '2.7'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Ubuntu packages
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        sudo apt-get update
+        sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
+
+    - name: Install Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+
+    - name: Build native extension
+      run: bundle exec rake gem:native:${{ matrix.platform }}
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: pkg
+        path: pkg/*.gem
+
+  test-build:
+    needs: [ build, cross-build ]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        ruby-version: [ '2.7', '3.0', '3.1' ]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: pkg
+        path: pkg
+
+    - name: Install binary gem
+      run: gem install -b pkg/emf2svg-$(ruby -I lib -r emf2svg/version -e "puts Emf2svg::VERSION")-$(ruby -e "puts RUBY_PLATFORM.sub(/darwin\d{2}$/, 'darwin')").gem
+# MacOS with have something like arm64-darwin19, others just aarch64-linux
+    - name: Test conversion
+      run: |
+        ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+  test-build-any:
+    needs: [ build, cross-build ]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        ruby-version: [ '2.7', '3.0', '3.1' ]
 
     steps:
     - uses: actions/checkout@v2
@@ -146,73 +171,8 @@ jobs:
         sudo apt-get install gperf
 
     - name: Install native gem
-      if: matrix.platform == 'any'
       run: gem install -b pkg/emf2svg-$(ruby -I lib -r emf2svg/version -e "puts Emf2svg::VERSION").gem
-
-    - name: Install binary gem
-      if: matrix.platform != 'any'
-      run: gem install -b pkg/emf2svg-*-${{ matrix.platform }}.gem
 
     - name: Test conversion
       run: |
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
-
-  cross:
-    name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: aarch64-linux
-            ruby-version: '2.7'
-            file: 'ELF 64-bit LSB shared object, ARM aarch64'
-          - os: macos-latest
-            platform: arm64-darwin
-            ruby-version: '2.7'
-            file: 'Mach-O 64-bit dynamically linked shared library arm64'
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Install Ubuntu packages
-      if: startsWith(matrix.os, 'ubuntu')
-      run: |
-        sudo apt-get update
-        sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
-
-    - name: Setup MacOS environment
-      if: startsWith(matrix.os, 'macos')
-      run: |
-        echo 'BREW_HOME<<EOF' >> $GITHUB_ENV
-        brew --prefix >> $GITHUB_ENV
-        echo 'EOF' >> $GITHUB_ENV
-
-    - name: Install Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby-version }}
-        bundler-cache: true
-
-    - run: bundle exec rake gem:native:${{ matrix.platform }}
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: pkg
-        path: pkg/*.gem
-
-    - name: Install gem
-      run: gem install -b pkg/emf2svg-*-${{ matrix.platform }}.gem
-
-    - name: Check file format
-      run: file $(ls pkg/*/lib/emf2svg/libemf2svg.*) | grep "${{ matrix.file }}"
-
-    - name: Checkout shell test framework
-      uses: actions/checkout@v3
-      with:
-        repository: kward/shunit2
-        path: tests/shunit2
-        fetch-depth: 1
-
-    - name: Run additional tests
-      run: ${{ env.BREW_HOME }}/bin/bash tests/lcheck.sh
