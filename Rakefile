@@ -14,6 +14,7 @@ task default: %i[spec rubocop]
 task :compile do
   require_relative "ext/extconf"
 end
+
 task spec: :compile
 
 desc "Build install-compilation gem"

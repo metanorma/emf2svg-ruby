@@ -3,5 +3,36 @@
 
 require "emf2svg"
 
-svg = Emf2svg.from_file(ARGV[0])
-File.write(ARGV[1], svg, mode: "wb")
+def print_usage
+  usage = %{Usage: emf2svg <input> <output> [<width>] [<height>]
+  <input>  -- emf file to convert
+  <output> -- svg file to save
+  <width>  -- svg image width, defaults to source width in px if not set or 0
+  <height> -- svg image height, defaults to source height in px if not set or 0
+  Note: width and height specify bounding rectangle, the image will be scaled
+        propotionally to fit into it.
+}
+  puts usage
+end
+
+def tint(pos)
+  ARGV.size > pos ? Integer(ARGV[pos]) : 0
+rescue ArgumentError, TypeError => e
+  puts "ERROR: Failed to convert #{ARGV[pos]} to integer: #{e.message}"
+  print_usage
+  exit 1
+end
+
+if ARGV.size < 2 || ARGV.size > 4 || ARGV[0].casecmp("help").zero?
+  print_usage
+  exit 0
+end
+
+begin
+  svg = Emf2svg.from_file(ARGV[0], tint(2), tint(3))
+  File.write(ARGV[1], svg, mode: "wb")
+rescue StandardError => e
+  puts "ERROR: Failed to process #{ARGV[0]}: #{e.message}"
+  print_usage
+  exit 1
+end

@@ -54,9 +54,13 @@ There are two ways to provide EMF data to `emf2svg`.
 ----
 require "emf2svg"
 
-data = Emf2svg.from_file("example.emf")
+data = Emf2svg.from_file("example.emf", 800, 600)
 File.write("output.svg", data, mode: "wb")
 ----
+800, 600 - optional width and height of the bounding rectangle for svg file
+The image will be scaled to fit into this rectangle
+These parameters are optional. If skipped or set to 0 SVG image will have the
+same size as EMF (in pixels)
 ====
 
 === Loading binary data
@@ -71,9 +75,13 @@ File.write("output.svg", data, mode: "wb")
 require "emf2svg"
 
 emf_content = File.read("example.emf", mode: "rb")
-svg_data = Emf2svg.from_binary_string(emf_content)
+svg_data = Emf2svg.from_binary_string(emf_content, 800, 600)
 File.write("output.svg", svg_data, mode: "wb")
 ----
+800, 600 - optional width and height of the bounding rectangle for svg file
+The image will be scaled to fit into this rectangle
+These parameters are optional. If skipped or set to 0 SVG image will have the
+same size as EMF (in pixels)
 ====
 
 

@@ -39,17 +39,18 @@ module Emf2svg
                   :int
 
   class << self
-    def from_file(path)
+    def from_file(path, width = 0, height = 0)
       content = File.read(path, mode: "rb")
-      from_binary_string(content)
+      from_binary_string(content, width, height)
     end
 
-    def from_binary_string(content)
+    def from_binary_string(content, width = 0, height = 0)
       svg_out = FFI::MemoryPointer.new(:pointer)
       svg_out_len = FFI::MemoryPointer.new(:pointer)
       content_ptr = FFI::MemoryPointer.from_string(content)
 
-      ret = emf2svg(content_ptr, content.size, svg_out, svg_out_len, options)
+      opt = options(width, height)
+      ret = emf2svg(content_ptr, content.size, svg_out, svg_out_len, opt)
       raise Error, "emf2svg failed with error code: #{ret}" unless ret == 1
 
       svg_out.read_pointer.read_bytes(svg_out_len.read_int)
@@ -57,13 +58,13 @@ module Emf2svg
 
     private
 
-    def options
+    def options(width, height)
       GeneratorOptions.new.tap do |opts|
         opts[:verbose] = false
         opts[:emfplus] = true
         opts[:svgDelimiter] = true
-        opts[:imgHeight] = 0
-        opts[:imgWidth] = 0
+        opts[:imgHeight] = height
+        opts[:imgWidth] = width
       end
     end
   end
