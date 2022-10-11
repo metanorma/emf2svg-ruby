@@ -12,6 +12,7 @@
 *.dll
 *.dylib
 *.so
+/.vscode/
 
 # rspec failure tracking
 .rspec_status

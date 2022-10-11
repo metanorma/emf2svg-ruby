@@ -26,12 +26,15 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency "bundler", "~> 2.3", ">= 2.3.22"
   spec.add_runtime_dependency "ffi", "~> 1.0"
   spec.add_runtime_dependency "mini_portile2", "~> 2.6"
+  spec.add_runtime_dependency "rake", "~> 13.0"
 
+  spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "rubocop", "1.5.2"
   spec.add_development_dependency "rubocop-performance", "~> 1.0"
   spec.add_development_dependency "rubocop-rails", "~> 2.0"
-
+  
   spec.extensions = ["ext/extconf.rb"]
 end
