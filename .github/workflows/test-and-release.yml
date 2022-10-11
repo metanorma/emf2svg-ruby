@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
 
     steps:
@@ -56,7 +56,7 @@ jobs:
     - name: Install packages
       run: |
         apk --no-cache --upgrade add build-base cmake git tar bash ruby-dev  \
-          gperf flex bison gettext-dev python3 ninja zip unzip curl pkgconfig
+          gperf flex bison gettext-dev python3 ninja make zip unzip curl pkgconfig
 
     - run: git config --global --add safe.directory $(pwd)
     - uses: actions/checkout@v3
