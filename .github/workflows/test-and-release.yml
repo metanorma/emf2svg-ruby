@@ -46,6 +46,26 @@ jobs:
 
     - run: bundle exec rake
 
+  test-alpine:
+    name: Test on alpine-latest
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+
+    steps:
+    - name: Install packages
+      run: |
+        apk --no-cache --upgrade add build-base cmake git tar bash ruby-dev  \
+          gperf flex bison gettext-dev python3 ninja zip unzip curl pkgconfig
+
+    - run: git config --global --add safe.directory $(pwd)
+    - uses: actions/checkout@v3
+
+    - run: gem install bundler:${{ env.BUNDLER_VER }} --no-document
+    - run: bundle install
+
+    - run: bundle exec rake spec
+
   package-many-native:
     name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
     needs: test-many
@@ -87,7 +107,7 @@ jobs:
 
     - run: bundle exec rake gem:native:${{ matrix.platform }}
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: pkg
         path: pkg/*.gem
@@ -125,7 +145,7 @@ jobs:
     - name: Build native extension
       run: bundle exec rake gem:native:${{ matrix.platform }}
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: pkg
         path: pkg/*.gem
@@ -136,7 +156,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
 
     steps:
@@ -146,7 +166,7 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby-version }}
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: pkg
         path: pkg
@@ -164,7 +184,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
 
     steps:
@@ -175,7 +195,7 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler: ${{ env.BUNDLER_VER }}
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: pkg
         path: pkg
@@ -196,13 +216,13 @@ jobs:
 # ----- Release -----
   release:
     name: Release gem
-    needs: [ test-binary-many, test-ruby-many ]
+    needs: [ test-binary-many, test-ruby-many, test-alpine ]
     runs-on: ubuntu-latest
 #    if: contains(github.ref, 'refs/tags/v')
     steps:
     - uses: actions/checkout@v3
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: pkg
         path: pkg
