@@ -53,7 +53,7 @@ module Emf2svg
       end
 
       opts << "-DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake"
-
+      message("Opts: #{opts}")
       opts
     end
 
