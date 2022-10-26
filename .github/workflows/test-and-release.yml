@@ -60,11 +60,22 @@ jobs:
         apk --no-cache --upgrade add build-base cmake git tar bash ruby-dev  \
           gperf flex bison gettext-dev python3 ninja make zip unzip curl pkgconfig
 
-    - run: git config --global --add safe.directory $(pwd)
+    - name: Configure directory for git
+      run: git config --global --add safe.directory $(pwd)
+
     - uses: actions/checkout@v3
 
     - run: gem install bundler:${{ env.BUNDLER_VER }} --no-document
     - run: bundle install
+
+    - name: Checkout vcpkg
+      uses: actions/checkout@v3
+      with:
+        repository: Microsoft/vcpkg
+        path: vcpkg
+
+    - name: Bootstrap vcpkg
+      run: vcpkg/bootstrap-vcpkg.sh
 
     - run: bundle exec rake spec
 
