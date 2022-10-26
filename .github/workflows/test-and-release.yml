@@ -30,7 +30,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby@master
       with:
         bundler-cache: true
         bundler: ${{ env.BUNDLER_VER }}
@@ -53,6 +53,7 @@ jobs:
       image: alpine:latest
     env:
       VCPKG_FORCE_SYSTEM_BINARIES: 1
+       CMAKE_MAKE_PROGRAM: ninja
     steps:
     - name: Install packages
       run: |
@@ -94,7 +95,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler: ${{ env.BUNDLER_VER }}
@@ -137,7 +138,7 @@ jobs:
         sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
 
     - name: Install Ruby
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler: ${{ env.BUNDLER_VER }}
@@ -163,7 +164,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
 
@@ -191,7 +192,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler: ${{ env.BUNDLER_VER }}
