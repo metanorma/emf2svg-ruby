@@ -53,7 +53,7 @@ jobs:
       image: alpine:latest
     env:
       VCPKG_FORCE_SYSTEM_BINARIES: 1
-       CMAKE_MAKE_PROGRAM: ninja
+      CMAKE_MAKE_PROGRAM: ninja
     steps:
     - name: Install packages
       run: |
