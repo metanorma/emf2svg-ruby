@@ -1,28 +1,39 @@
-name: build
+name: test-and-release
 
 on:
   push:
     branches: [ main ]
-    paths-ignore:
-      - '*.adoc'
+    tags:     [ 'v*' ]
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: '${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.ref_name }}'
+  cancel-in-progress: true
+
+env:
+  BUNDLER_VER: 2.3.22
+# Forcing bundler version to ensure that it is consistent everywhere and
+# does not cause bundler gem reinstalls
+# bundler/rubygems 2.3.22 is a minimal requirement to support gnu/musl differentiation
+# https://github.com/rubygems/rubygems/pull/4488
+
 jobs:
-  test:
+  test-many:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
 
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby@master
       with:
         bundler-cache: true
+        bundler: ${{ env.BUNDLER_VER }}
         ruby-version: ${{ matrix.ruby-version }}
 
 # https://github.com/microsoft/vcpkg/issues/15931
@@ -35,17 +46,39 @@ jobs:
 
     - run: bundle exec rake
 
-  build:
+  test-alpine:
+    name: Test on alpine-latest
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:latest
+    env:
+      CMAKE_MAKE_PROGRAM: ninja
+    steps:
+    - name: Install packages
+      run: |
+        apk --no-cache --upgrade add build-base cmake git tar bash ruby-dev  \
+          gperf flex bison gettext-dev python3 ninja make zip unzip curl pkgconfig
+
+    - run: git config --global --add safe.directory $(pwd)
+    - uses: actions/checkout@v3
+
+    - run: gem install bundler:${{ env.BUNDLER_VER }} --no-document
+    - run: bundle install
+
+    - run: bundle exec rake spec
+
+  package-many-native:
     name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
+    needs: test-many
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-latest
             platform: any
             ruby-version: '2.7'
-          - os: ubuntu-18.04
+          - os: ubuntu-latest
             platform: x86_64-linux
             ruby-version: '2.7'
           - os: windows-latest
@@ -61,9 +94,10 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
+        bundler: ${{ env.BUNDLER_VER }}
         bundler-cache: true
 
     - name: Workaround for vcpkg
@@ -74,13 +108,14 @@ jobs:
 
     - run: bundle exec rake gem:native:${{ matrix.platform }}
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: pkg
         path: pkg/*.gem
 
-  cross-build:
+  package-many-cross:
     name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
+    needs: test-many
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -102,36 +137,37 @@ jobs:
         sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu gperf
 
     - name: Install Ruby
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
+        bundler: ${{ env.BUNDLER_VER }}
         bundler-cache: true
 
     - name: Build native extension
       run: bundle exec rake gem:native:${{ matrix.platform }}
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: pkg
         path: pkg/*.gem
 
-  test-build:
-    needs: [ build, cross-build ]
+  test-binary-many:
+    needs: [ package-many-native, package-many-cross ]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: pkg
         path: pkg
@@ -143,23 +179,24 @@ jobs:
       run: |
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
 
-  test-build-any:
-    needs: [ build, cross-build ]
+  test-ruby-many:
+    needs: [ package-many-native, package-many-cross ]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
         ruby-version: [ '2.7', '3.0', '3.1' ]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby@master
       with:
         ruby-version: ${{ matrix.ruby-version }}
+        bundler: ${{ env.BUNDLER_VER }}
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: pkg
         path: pkg
@@ -176,3 +213,34 @@ jobs:
     - name: Test conversion
       run: |
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
+
+# ----- Release -----
+  release:
+    name: Release gem
+    needs: [ test-binary-many, test-ruby-many, test-alpine ]
+    runs-on: ubuntu-latest
+#    if: contains(github.ref, 'refs/tags/v')
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: pkg
+        path: pkg
+
+    - name: Publish to rubygems.org
+      env:
+        RUBYGEMS_API_KEY: ${{secrets.METANORMA_CI_RUBYGEMS_API_KEY}}
+      run: |
+        mkdir -p ~/.gem
+        touch ~/.gem/credentials
+        cat > ~/.gem/credentials << EOF
+        ---
+        :rubygems_api_key: ${RUBYGEMS_API_KEY}
+        EOF
+        chmod 0600 ~/.gem/credentials
+        gem signin
+        mkdir tmp
+        for gem in pkg/*.gem; do echo "gem push -V $gem"; done
+
+#        for gem in pkg/*.gem; do gem push -V $gem; done
