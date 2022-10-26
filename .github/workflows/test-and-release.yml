@@ -52,7 +52,7 @@ jobs:
     container:
       image: alpine:latest
     env:
-      CMAKE_MAKE_PROGRAM: ninja
+      VCPKG_FORCE_SYSTEM_BINARIES: 1
     steps:
     - name: Install packages
       run: |
@@ -241,6 +241,6 @@ jobs:
         chmod 0600 ~/.gem/credentials
         gem signin
         mkdir tmp
-        for gem in pkg/*.gem; do echo "gem push -V $gem"; done
+        for gem in pkg/*.gem; do echo "Will do 'gem push -V $gem'"; done
 
 #        for gem in pkg/*.gem; do gem push -V $gem; done

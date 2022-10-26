@@ -4,6 +4,10 @@ inherit_from:
 AllCops:
   TargetRubyVersion: 2.7
   SuggestExtensions: false
+  Exclude:
+    - 'tmp/**/*'
+    - 'pkg/**/*'
+    - 'ports/**/*'
 
 Gemspec/RequireMFA:
   Enabled: false
