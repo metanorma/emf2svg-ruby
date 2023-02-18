@@ -13,13 +13,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    uses: metanorma/ci/.github/workflows/prepare-rake.yml@main
+
   test:
+    name: Test on Ruby ${{ matrix.ruby.version }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+
+    needs: prepare
+    if: needs.prepare.outputs.push-for-tag != 'true'
+
+    continue-on-error: ${{ matrix.ruby.experimental }}
     strategy:
       fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        ruby-version: [ '2.7', '3.0', '3.1' ]
+      max-parallel: 5
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
 
     steps:
     - uses: actions/checkout@v3
@@ -27,10 +35,11 @@ jobs:
     - uses: ruby/setup-ruby@master
       with:
         bundler-cache: true
-        ruby-version: ${{ matrix.ruby-version }}
+        ruby-version: ${{ matrix.ruby.version }}
+        rubygems: ${{ matrix.ruby.rubygems }}
 
-# https://github.com/microsoft/vcpkg/issues/15931
-# no good solution :(
+    # https://github.com/microsoft/vcpkg/issues/15931
+    # no good solution :(
     - name: Workaround for vcpkg
       if: startsWith(matrix.os, 'ubuntu')
       run: |
@@ -42,25 +51,26 @@ jobs:
   build:
     name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             platform: any
-            ruby-version: '2.7'
+            ruby-version: ${{ needs.prepare.outputs.default-ruby-version }}
           - os: ubuntu-latest
             platform: x86_64-linux
-            ruby-version: '2.7'
+            ruby-version: ${{ needs.prepare.outputs.default-ruby-version }}
           - os: windows-latest
             platform: x64-mingw32
-            ruby-version: '2.7'
+            ruby-version: ${{ needs.prepare.outputs.default-ruby-version }}
           - os: windows-latest
             platform: x64-mingw-ucrt
-            ruby-version: '3.1'
+            ruby-version: ${{ needs.prepare.outputs.default-ruby-version }}
           - os: macos-latest
             platform: x86_64-darwin
-            ruby-version: '2.7'
+            ruby-version: ${{ needs.prepare.outputs.default-ruby-version }}
     steps:
     - uses: actions/checkout@v3
 
@@ -86,16 +96,17 @@ jobs:
   cross-build:
     name: build ${{ matrix.os }}, ${{ matrix.ruby-version }}, ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             platform: aarch64-linux
-            ruby-version: '2.7'
+            ruby-version: ${{ needs.prepare.outputs.default-ruby-version }}
           - os: macos-latest
             platform: arm64-darwin
-            ruby-version: '2.7'
+            ruby-version: ${{ needs.prepare.outputs.default-ruby-version }}
     steps:
     - uses: actions/checkout@v3
 
@@ -120,20 +131,23 @@ jobs:
         path: pkg/*.gem
 
   test-build:
-    needs: [ build, cross-build ]
+    needs: [ prepare, build, cross-build ]
     runs-on: ${{ matrix.os }}
+
+    continue-on-error: ${{ matrix.ruby.experimental }}
     strategy:
       fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        ruby-version: [ '2.7', '3.0', '3.1' ]
+      max-parallel: 5
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
 
     steps:
     - uses: actions/checkout@v3
 
     - uses: ruby/setup-ruby@master
       with:
-        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+        ruby-version: ${{ matrix.ruby.version }}
+        rubygems: ${{ matrix.ruby.rubygems }}
 
     - uses: actions/download-artifact@v3
       with:
@@ -148,20 +162,23 @@ jobs:
         ruby -remf2svg -e "puts File.write('output.svg', Emf2svg.from_file('spec/examples/image1.emf'), mode: 'wb')"
 
   test-build-any:
-    needs: [ build, cross-build ]
+    needs: [ prepare, build, cross-build ]
     runs-on: ${{ matrix.os }}
+
+    continue-on-error: ${{ matrix.ruby.experimental }}
     strategy:
       fail-fast: false
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
-        ruby-version: [ '2.7', '3.0', '3.1' ]
+      max-parallel: 5
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
 
     steps:
     - uses: actions/checkout@v3
 
     - uses: ruby/setup-ruby@master
       with:
-        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+        ruby-version: ${{ matrix.ruby.version }}
+        rubygems: ${{ matrix.ruby.rubygems }}
 
     - uses: actions/download-artifact@v3
       with:
