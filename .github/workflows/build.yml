@@ -46,6 +46,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install gperf
 
+    - run: |
+        which make || true
+        which clang || true
+        which gcc || true
+
     - run: bundle exec rake
 
   build:
