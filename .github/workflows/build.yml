@@ -136,7 +136,8 @@ jobs:
     - name: Build native extension
       run: bundle exec rake gem:native:${{ matrix.platform }}
 
-    - uses: metanorma/ci/native-deps-action@main
+    - if: matrix.platform != 'aarch64-linux'
+      uses: metanorma/ci/native-deps-action@main
       with:
         libname: emf2svg
         directory: lib/emf2svg
