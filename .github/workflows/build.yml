@@ -93,6 +93,12 @@ jobs:
 
     - run: bundle exec rake gem:native:${{ matrix.platform }}
 
+    - if: matrix.platform != 'any'
+      uses: metanorma/ci/native-deps-action@main
+      with:
+        libname: emf2svg
+        directory: lib/emf2svg
+
     - uses: actions/upload-artifact@v3
       with:
         name: pkg
@@ -129,6 +135,11 @@ jobs:
 
     - name: Build native extension
       run: bundle exec rake gem:native:${{ matrix.platform }}
+
+    - uses: metanorma/ci/native-deps-action@main
+      with:
+        libname: emf2svg
+        directory: lib/emf2svg
 
     - uses: actions/upload-artifact@v3
       with:
