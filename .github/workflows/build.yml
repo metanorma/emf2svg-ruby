@@ -166,7 +166,7 @@ jobs:
         ruby-version: ${{ matrix.ruby.version }}
         rubygems: ${{ matrix.ruby.rubygems }}
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: pkg
         path: pkg
@@ -197,7 +197,7 @@ jobs:
         ruby-version: ${{ matrix.ruby.version }}
         rubygems: ${{ matrix.ruby.rubygems }}
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: pkg
         path: pkg
